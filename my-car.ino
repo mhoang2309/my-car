@@ -27,7 +27,7 @@ private:
 public:
     CarGlass() {} // Hàm tạo mặc định
 
-    CarGlass(int RPWM, int LPWM, int doorNumber);
+    CarGlass(int RPWM, int LPWM, int doorNumber, int timedelay);
 
     ~CarGlass();
 
@@ -46,11 +46,12 @@ public:
     // Other member functions (if needed)
 };
 
-CarGlass::CarGlass(int RPWM, int LPWM, int doorNumber)
+CarGlass::CarGlass(int RPWM, int LPWM, int doorNumber, int timedelay)
 {
     this->RPWM = RPWM;
     this->LPWM = LPWM;
     this->doorNumber = doorNumber;
+    this->timedelay = timedelay;
 }
 
 CarGlass::~CarGlass()
@@ -120,17 +121,108 @@ void CarGlass::stopGlass()
     Serial.println(message);
 }
 
+struct SwitchStatus {
+    bool top;
+    bool bot;
+};
+
+class PositionSwitch
+{
+private:
+    int topSwitch;
+    int botSwitch;
+    int doorNumber;
+    int timedelay;
+
+public:
+    PositionSwitch() {} // Hàm tạo mặc định
+
+    PositionSwitch(int topSwitch, int botSwitch, int doorNumber, int timedelay);
+
+    ~PositionSwitch();
+
+    int gettopSwitch() const;
+    void settopSwitch(int value);
+    int getbotSwitch() const;
+    void setbotSwitch(int value);
+    int getdoorNumber() const;
+    void setdoorNumber(int value);
+    int gettimedelay() const;
+    void settimedelay(int value);
+    void init();
+    SwitchStatus read_status();
+    // Other member functions (if needed)
+};
+
+PositionSwitch::PositionSwitch(int topSwitch, int botSwitch, int doorNumber, int timedelay)
+{
+    this->topSwitch = topSwitch;
+    this->botSwitch = botSwitch;
+    this->doorNumber = doorNumber;
+    this->timedelay = timedelay;
+}
+
+PositionSwitch::~PositionSwitch()
+{
+    // Destructor code (if needed)
+}
+
+int PositionSwitch::gettopSwitch() const
+{
+    return topSwitch;
+}
+void PositionSwitch::settopSwitch(int value)
+{
+    topSwitch = value;
+}
+int PositionSwitch::getbotSwitch() const
+{
+    return botSwitch;
+}
+void PositionSwitch::setbotSwitch(int value)
+{
+    botSwitch = value;
+}
+int PositionSwitch::getdoorNumber() const
+{
+    return doorNumber;
+}
+void PositionSwitch::setdoorNumber(int value)
+{
+    doorNumber = value;
+}
+int PositionSwitch::gettimedelay() const
+{
+    return timedelay;
+}
+void PositionSwitch::settimedelay(int value)
+{
+    timedelay = value;
+}
+void PositionSwitch::init()
+{
+    pinMode(topSwitch, INPUT);
+    pinMode(botSwitch, INPUT);
+}
+SwitchStatus PositionSwitch::read_status(){
+    SwitchStatus status;
+    status.top = digitalRead(topSwitch);
+    status.bot = digitalRead(botSwitch);
+    return status;
+}
+
 CarGlass glasses[IN_SIZE];
+PositionSwitch positionSwitch[SW_SIZE];
 
 void setup()
 {
     Serial.begin(9600);
     delay(100);
     for (int i = 0; i < SW_SIZE; i++)
-        pinMode(SW[i], INPUT);
+        positionSwitch[i].init();
     for (int i = 0; i < IN_SIZE; i++)
         glasses[i].init();
-    BlynkEdgent.run();
+    BlynkEdgent.begin();
 }
 
 void loop()
